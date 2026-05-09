@@ -39,6 +39,7 @@ mixin AppLocale {
   // Game / Playback
   // ---------------------------------------------------------------------------
   static const String play = 'play';
+  static const String downloads = 'downloads';
   static const String playButton = 'play_button';
   static const String favorite = 'favorite';
   static const String random = 'random';

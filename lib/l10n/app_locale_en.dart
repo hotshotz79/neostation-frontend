@@ -18,6 +18,7 @@ const Map<String, dynamic> appLocaleEn = {
   AppLocale.download: 'Download',
   AppLocale.stop: 'Stop',
   AppLocale.reset: 'Reset',
+  AppLocale.downloads: 'Downloads',
 
   AppLocale.play: 'Play',
   AppLocale.playButton: 'PLAY',

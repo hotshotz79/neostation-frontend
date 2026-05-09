@@ -116,6 +116,15 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
     _menuItems.add(
       SettingsMenuItem(
         title: '',
+        localeKey: AppLocale.downloads,
+        icon: Icons.download,
+        isVisible: true,
+      ),
+    );
+
+    _menuItems.add(
+      SettingsMenuItem(
+        title: '',
         localeKey: AppLocale.palettes,
         icon: Icons.palette,
         isVisible: true,
@@ -305,6 +314,8 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
     } else if (selectedKey == AppLocale.systemsSettings) {
       final provider = context.read<SqliteConfigProvider>();
       return _systemsSettingsKey.currentState?.getItemCount(provider) ?? 0;
+    } else if (selectedKey == AppLocale.downloads) {
+      return 0;
     } else if (selectedKey == AppLocale.about) {
       return _aboutSettingsKey.currentState?.getItemCount() ?? 0;
     } else if (selectedKey == AppLocale.exit) {
@@ -494,6 +505,13 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
         key: _systemsSettingsKey,
         isContentFocused: !_focusOnMenu,
         selectedContentIndex: _selectedContentIndex,
+      );
+    } else if (selectedKey == AppLocale.downloads) {
+      return Center(
+        child: Text(
+          'Coming Soon',
+          style: theme.textTheme.headlineMedium,
+        ),
       );
     } else if (selectedKey == AppLocale.palettes) {
       return PaletteSettingsContent(

@@ -20,14 +20,10 @@ jobs:
         include:
           - target: windows
             os: windows-latest
-          - target: macos
-            os: macos-latest
           - target: android
             os: ubuntu-latest
           - target: linux-x64
             os: ubuntu-latest
-          - target: linux-arm
-            os: ubuntu-24.04-arm # Runner ARM native
 
     steps:
       - name: Checkout repository
@@ -53,21 +49,11 @@ jobs:
           distribution: 'zulu'
           java-version: '17'
 
-      - name: Setup Flutter (x64)
-        if: matrix.target != 'linux-arm'
+      - name: Setup Flutter
         uses: subosito/flutter-action@v2
         with:
           channel: 'stable'
           cache: true
-
-      - name: Setup Flutter (ARM64 Manual)
-        if: matrix.target == 'linux-arm'
-        run: |
-          git clone -b stable --depth 1 https://github.com/flutter/flutter.git $HOME/flutter
-          echo "$HOME/flutter/bin" >> $GITHUB_PATH
-          export PATH="$HOME/flutter/bin:$PATH"
-          flutter config --no-analytics
-          flutter precache --linux
 
       - name: Cache Flutter and Gradle
         uses: actions/cache@v5
@@ -81,18 +67,10 @@ jobs:
           restore-keys: |
             ${{ runner.os }}-flutter-cache-
 
-      - name: Install macOS dependencies
-        if: matrix.target == 'macos'
-        run: brew install create-dmg
-
       - name: Build Windows
         if: matrix.target == 'windows'
         shell: pwsh
         run: .\build-utils\build-windows.ps1
-
-      - name: Build macOS
-        if: matrix.target == 'macos'
-        run: bash build-utils/build-macos.sh
 
       - name: Setup Android Keystore
         if: matrix.target == 'android'
@@ -120,7 +98,7 @@ jobs:
         run: bash build-utils/build-android.sh
 
       - name: Cache Linux build tools
-        if: matrix.target == 'linux-x64' || matrix.target == 'linux-arm'
+        if: matrix.target == 'linux-x64'
         uses: actions/cache@v5
         with:
           path: |
@@ -131,7 +109,7 @@ jobs:
             ${{ runner.os }}-${{ runner.arch }}-linuxdeploy-
 
       - name: Install Linux Build Dependencies
-        if: matrix.target == 'linux-x64' || matrix.target == 'linux-arm'
+        if: matrix.target == 'linux-x64'
         run: |
           sudo apt-get update
           sudo apt-get install -y curl git unzip xz-utils zip libglu1-mesa clang cmake ninja-build pkg-config \
@@ -144,10 +122,6 @@ jobs:
         if: matrix.target == 'linux-x64'
         run: bash build-utils/build-linux.sh
 
-      - name: Build Linux ARM
-        if: matrix.target == 'linux-arm'
-        run: bash build-utils/build-linuxarm.sh
-
       - name: Upload Artifacts
         uses: actions/upload-artifact@v7
         with:
@@ -155,48 +129,4 @@ jobs:
           path: release/*
           if-no-files-found: warn
 
-  release:
-    name: Publish Release
-    needs: build
-    if: startsWith(github.ref, 'refs/tags/') || github.event_name == 'workflow_dispatch'
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      pull-requests: read
-    steps:
-      - name: Checkout repository
-        uses: actions/checkout@v6
-        with:
-          fetch-depth: 0
 
-      - name: Download all artifacts
-        uses: actions/download-artifact@v7
-        with:
-          path: release-artifacts
-          pattern: neostation-*
-          merge-multiple: true
-
-      - name: Build Changelog
-        id: build_changelog
-        uses: mikepenz/release-changelog-builder-action@v5
-        with:
-          configuration: ".github/changelog-config.json"
-          ignorePreReleases: "false"
-          failOnError: "false"
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Get version from pubspec
-        id: version
-        run: |
-          VERSION=$(grep '^version:' pubspec.yaml | head -1 | awk '{print $2}' | tr -d '\r')
-          echo "version=$VERSION" >> $GITHUB_OUTPUT
-
-      - name: Create GitHub Release
-        uses: softprops/action-gh-release@v3
-        with:
-          token: ${{ secrets.GITHUB_TOKEN }}
-          name: NeoStation Beta ${{ steps.version.outputs.version }}
-          body: ${{ steps.build_changelog.outputs.changelog }}
-          files: release-artifacts/*
-          draft: true

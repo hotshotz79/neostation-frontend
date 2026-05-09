@@ -508,10 +508,7 @@ class _NewSettingsScreenState extends State<NewSettingsScreen> {
       );
     } else if (selectedKey == AppLocale.downloads) {
       return Center(
-        child: Text(
-          'Coming Soon',
-          style: theme.textTheme.headlineMedium,
-        ),
+        child: Text('Coming Soon', style: theme.textTheme.headlineMedium),
       );
     } else if (selectedKey == AppLocale.palettes) {
       return PaletteSettingsContent(
